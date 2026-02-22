@@ -6,3 +6,11 @@ coverage/
 *.log
 .env*
 !.env.example
+/.idea/copilot.data.migration.agent.xml
+/.idea/modules.xml
+/.idea/aws.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/encodings.xml
+/.idea/vcs.xml
+/.idea/store.iml
+/.idea/.gitignore
