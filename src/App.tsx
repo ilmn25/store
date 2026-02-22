@@ -11,16 +11,16 @@ import { RevealOnScroll } from './components/RevealOnScroll';
 export default function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string>('New');
+  const [activeCategory, setActiveCategory] = useState<string>('News');
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [currentPage, setCurrentPage] = useState<'shop' | 'about'>('shop');
+
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const productGridRef = useRef<HTMLDivElement>(null);
 
@@ -62,42 +62,7 @@ export default function App() {
     setIsDetailsOpen(true);
   };
 
-  const executeCoolTransition = useCallback((callback: () => void) => {
-    if (isTransitioning) return;
-    
-    const currentY = window.scrollY;
-    const totalHeight = document.documentElement.scrollHeight;
-    const viewportHeight = window.innerHeight;
-    const maxScroll = totalHeight - viewportHeight;
 
-    if (maxScroll <= 0) {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        callback();
-        setIsTransitioning(false);
-      }, 250);
-      return;
-    }
-
-    const distanceToTop = currentY;
-    const distanceToBottom = maxScroll - currentY;
-    const target = distanceToTop > distanceToBottom ? 0 : totalHeight;
-
-    setIsTransitioning(true);
-    window.scrollTo({ top: target, behavior: 'smooth' });
-
-    setTimeout(() => {
-      callback();
-      
-      requestAnimationFrame(() => {
-        window.scrollTo(0, 0);
-        setTimeout(() => {
-          window.scrollTo({ top: 0, behavior: 'instant' });
-          setIsTransitioning(false);
-        }, 50);
-      });
-    }, 420);
-  }, [isTransitioning]);
 
   const scrollToSection = useCallback((id?: string) => {
     setTimeout(() => {
@@ -120,7 +85,7 @@ export default function App() {
 
     if (!matchesSearch) return false;
 
-    if (activeCategory === 'New') return p.isNew;
+    if (activeCategory === 'News') return p.isNew;
     if (activeCategory === 'All') return true;
     
     const matchesCategory = p.type === activeCategory;
@@ -135,11 +100,17 @@ export default function App() {
     return acc;
   }, {} as Record<string, Product[]>);
 
+  const newProductsGrouped = products.filter(p => p.isNew).reduce((acc, product) => {
+    const type = product.type || 'Other';
+    if (!acc[type]) acc[type] = [];
+    acc[type].push(product);
+    return acc;
+  }, {} as Record<string, Product[]>);
+
   const navItems = useMemo(() => {
-    const categories = ['Clothing', 'Accessories'];
+    const categories = ['Clothes', 'Accessories'];
     const items: any[] = [
-      { name: 'About', type: 'link' },
-      { name: 'New', type: 'link' },
+      { name: 'News', type: 'link' },
     ];
 
     categories.forEach(cat => {
@@ -189,36 +160,11 @@ export default function App() {
                   <div key={item.name} className="relative group">
                     <button 
                       onClick={() => {
-                        if (item.name === 'About') {
-                          const action = () => {
-                            setCurrentPage('about');
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          };
-                          if (currentPage === 'shop' && activeCategory === 'New') {
-                            executeCoolTransition(action);
-                          } else {
-                            action();
-                          }
-                        } else {
-                          const isSwitchingToNewFromAbout = currentPage === 'about' && item.name === 'New';
-                          const action = () => {
-                            setCurrentPage('shop');
-                            setActiveCategory(item.name);
-                            setActiveSubcategory(null);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          };
-                          if (isSwitchingToNewFromAbout) {
-                            executeCoolTransition(action);
-                          } else {
-                            action();
-                          }
-                        }
+                        setActiveCategory(item.name);
+                        setActiveSubcategory(null);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
-                      className={`text-[10px] uppercase tracking-[0.2em] font-bold transition-all hover:text-brand-accent flex items-center gap-1 ${
-                        (currentPage === 'about' && item.name === 'About') || (currentPage === 'shop' && activeCategory === item.name) 
-                          ? 'text-brand-ink' 
-                          : 'text-brand-ink/30'
-                      }`}
+                      className={`text-[10px] uppercase tracking-[0.2em] font-bold transition-all hover:text-brand-accent flex items-center gap-1 ${ activeCategory === item.name ? 'text-brand-ink' : 'text-brand-ink/30' }`}
                     >
                       {item.name}
                       {item.type === 'dropdown' && <span className="text-[8px] opacity-50">▼</span>}
@@ -232,19 +178,9 @@ export default function App() {
                               <button
                                 key={sub}
                               onClick={() => {
-                                const action = () => {
-                                  setCurrentPage('shop');
-                                  setActiveCategory(item.name);
-                                  setActiveSubcategory(sub);
-                                  scrollToSection(sub);
-                                };
-
-                                const isSwitchingFromAbout = currentPage === 'about';
-                                if (isSwitchingFromAbout) {
-                                  executeCoolTransition(action);
-                                } else {
-                                  action();
-                                }
+                                setActiveCategory(item.name);
+                                setActiveSubcategory(sub);
+                                scrollToSection(sub);
                               }}
                                 className={`text-[9px] uppercase tracking-widest text-left hover:text-brand-accent transition-colors ${
                                   activeSubcategory === sub ? 'text-brand-ink font-bold' : 'text-brand-ink/40'
@@ -264,18 +200,9 @@ export default function App() {
 
             <button 
               onClick={() => {
-                const isSwitchingToNewFromAbout = currentPage === 'about';
-                const action = () => {
-                  setCurrentPage('shop');
-                  setActiveCategory('New');
-                  setActiveSubcategory(null);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                };
-                if (isSwitchingToNewFromAbout) {
-                  executeCoolTransition(action);
-                } else {
-                  action();
-                }
+                setActiveCategory('News');
+                setActiveSubcategory(null);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               className="text-xl sm:text-2xl font-black tracking-tighter uppercase"
             >
@@ -326,18 +253,9 @@ export default function App() {
             <div className="lg:hidden flex justify-between items-center">
                <button 
                 onClick={() => {
-                  const isSwitchingToNewFromAbout = currentPage === 'about';
-                  const action = () => {
-                    setCurrentPage('shop');
-                    setActiveCategory('New');
-                    setActiveSubcategory(null);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  };
-                  if (isSwitchingToNewFromAbout) {
-                    executeCoolTransition(action);
-                  } else {
-                    action();
-                  }
+                  setActiveCategory('News');
+                  setActiveSubcategory(null);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="text-xl font-black tracking-tighter uppercase"
               >
@@ -393,32 +311,11 @@ export default function App() {
                 <button 
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    if (item.name === 'About') {
-                      const action = () => {
-                        setCurrentPage('about');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      };
-                      if (currentPage === 'shop' && activeCategory === 'New') {
-                        executeCoolTransition(action);
-                      } else {
-                        action();
-                      }
-                    } else {
-                      const isSwitchingToNewFromAbout = currentPage === 'about' && item.name === 'New';
-                      const action = () => {
-                        setCurrentPage('shop');
-                        setActiveCategory(item.name);
-                        setActiveSubcategory(null);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      };
-                      if (isSwitchingToNewFromAbout) {
-                        executeCoolTransition(action);
-                      } else {
-                        action();
-                      }
-                    }
+                    setActiveCategory(item.name);
+                    setActiveSubcategory(null);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className={`text-lg uppercase tracking-[0.2em] font-bold transition-all hover:text-brand-accent flex items-center gap-1 ${ (currentPage === 'about' && item.name === 'About') || (currentPage === 'shop' && activeCategory === item.name) ? 'text-brand-ink' : 'text-brand-ink/30' }`}
+                  className={`text-lg uppercase tracking-[0.2em] font-bold transition-all hover:text-brand-accent flex items-center gap-1 ${ activeCategory === item.name ? 'text-brand-ink' : 'text-brand-ink/30' }`}
                 >
                   {item.name}
                   {item.type === 'dropdown' && <span className="text-sm opacity-50">▼</span>}
@@ -432,19 +329,9 @@ export default function App() {
                           key={sub}
                           onClick={() => {
                             setIsMobileMenuOpen(false);
-                            const action = () => {
-                              setCurrentPage('shop');
-                              setActiveCategory(item.name);
-                              setActiveSubcategory(sub);
-                              scrollToSection(sub);
-                            };
-
-                            const isSwitchingFromAbout = currentPage === 'about';
-                            if (isSwitchingFromAbout) {
-                              executeCoolTransition(action);
-                            } else {
-                              action();
-                            }
+                            setActiveCategory(item.name);
+                            setActiveSubcategory(sub);
+                            scrollToSection(sub);
                           }}
                           className={`text-base uppercase tracking-widest text-left hover:text-brand-accent transition-colors ${ activeSubcategory === sub ? 'text-brand-ink font-bold' : 'text-brand-ink/40' }`}
                         >
@@ -461,31 +348,54 @@ export default function App() {
 
       </div>
 
-      {currentPage === 'shop' && (
-        <header className="border-b border-brand-ink/10">
-          <div className="max-w-[1800px] mx-auto">
-            <RevealOnScroll direction="up">
-              <div className="p-12 lg:p-24 flex flex-col items-center text-center">
-                <span className="text-brand-ink/40 text-[10px] uppercase font-bold tracking-[0.4em] mb-4 block">
-                  Collection 01 / 2026
-                </span>
-                <h2 className="text-6xl md:text-9xl font-black leading-[0.8] uppercase tracking-tighter">
-                  ILMN <br /> NNNNNN<span className="bg-brand-ink text-brand-bg">N</span>
-                </h2>
-              </div>
-            </RevealOnScroll>
-          </div>
-        </header>
-      )}
 
-      <div className={`transition-all duration-500 ${isTransitioning ? 'opacity-30 blur-md scale-[0.98] pointer-events-none' : 'opacity-100'}`}>
-        {currentPage === 'shop' ? (
+
+      <div>
+        
           <motion.div
             key="shop"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
+            {activeCategory === 'News' ? (
+              <header className="max-w-4xl mx-auto px-6 py-24">
+                <RevealOnScroll direction="left">
+                  <div className="flex flex-col md:flex-row md:items-end md:gap-8 space-y-6 md:space-y-0">
+                    <div className="flex-shrink-0">
+                      <span className="text-brand-ink/40 text-[10px] uppercase font-bold tracking-[0.4em]">Illu's</span>
+                      <h2 className="text-6xl font-black uppercase tracking-tighter leading-none">
+                        ILMNNNNNNNN
+                      </h2>
+                    </div>
+                    <div className="pb-1">
+                      <p className="text-brand-ink/60 text-sm uppercase tracking-widest font-medium leading-relaxed max-w-sm">
+                        is a conceptual mockup for a clothing and accessories brand, all products displayed do not exist.
+                      </p>
+                      <div className="flex gap-4 mt-4">
+                        <a href="https://www.instagram.com/ilmnnnnnnnnnn/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-ink transition-colors"><Instagram size={20} /></a>
+                        <a href="https://x.com/ilmn25" target="_blank" rel="noopener noreferrer" className="hover:text-brand-ink transition-colors"><Twitter size={20} /></a>
+                      </div>
+                    </div>
+                  </div>
+                </RevealOnScroll>
+              </header>
+            ) : (
+              <header className="border-b border-brand-ink/10">
+                <div className="max-w-[1800px] mx-auto">
+                  <RevealOnScroll direction="up">
+                    <div className="p-12 lg:p-24 flex flex-col items-center text-center">
+                      <span className="text-brand-ink/40 text-[10px] uppercase font-bold tracking-[0.4em] mb-4 block">
+                        Collection 01 / 2026
+                      </span>
+                      <h2 className="text-6xl md:text-9xl font-black leading-[0.8] uppercase tracking-tighter">
+                        ILMN <br /> NNNNNN<span className="bg-brand-ink text-brand-bg">N</span>
+                      </h2>
+                    </div>
+                  </RevealOnScroll>
+                </div>
+              </header>
+            )}
             {/* Product Grid Section */}
             <main ref={productGridRef} className="max-w-[1800px] mx-auto p-6">
               <div className="flex justify-between items-end mb-12 px-2">
@@ -499,27 +409,51 @@ export default function App() {
 
               {filteredProducts.length > 0 ? (
                 <div className="space-y-12">
-                  {Object.entries(groupedProducts).map(([sub, items]) => (
-                    <div key={sub} id={`section-${sub}`} className="space-y-4 scroll-mt-40">
-                      <div className="flex items-center gap-4">
-                        <h2 className="text-2xl font-black uppercase tracking-tighter leading-none">
-                          ILMNNNNNNNN / {items[0]?.type} / {sub}
-                        </h2>
-                        <div className="h-px flex-1 bg-brand-ink/10"></div>
+                  {activeCategory === 'News' ? (
+                    Object.entries(newProductsGrouped).map(([type, items]) => (
+                      <div key={type} id={`section-${type}`} className="space-y-4 scroll-mt-40">
+                        <div className="flex items-center gap-4">
+                          <h2 className="text-2xl font-black uppercase tracking-tighter leading-none">
+                            ILMNNNNNNNN / {type} / New
+                          </h2>
+                          <div className="h-px flex-1 bg-brand-ink/10"></div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
+                          {items.map((product) => (
+                            <ProductCard 
+                              key={product.id} 
+                              product={product} 
+                              onAddToCart={addToCart} 
+                              onViewDetails={openProductDetails}
+                              currency={currency}
+                            />
+                          ))}
+                        </div>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
-                        {items.map((product) => (
-                          <ProductCard 
-                            key={product.id} 
-                            product={product} 
-                            onAddToCart={addToCart} 
-                            onViewDetails={openProductDetails}
-                            currency={currency}
-                          />
-                        ))}
+                    ))
+                  ) : (
+                    Object.entries(groupedProducts).map(([sub, items]) => (
+                      <div key={sub} id={`section-${sub}`} className="space-y-4 scroll-mt-40">
+                        <div className="flex items-center gap-4">
+                          <h2 className="text-2xl font-black uppercase tracking-tighter leading-none">
+                            ILMNNNNNNNN / {items[0]?.type} / {sub}
+                          </h2>
+                          <div className="h-px flex-1 bg-brand-ink/10"></div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
+                          {items.map((product) => (
+                            <ProductCard 
+                              key={product.id} 
+                              product={product} 
+                              onAddToCart={addToCart} 
+                              onViewDetails={openProductDetails}
+                              currency={currency}
+                            />
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               ) : (
                 <div className="py-24 text-center">
@@ -528,39 +462,7 @@ export default function App() {
               )}
             </main>
           </motion.div>
-        ) : (
-          <motion.main
-            key="about"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="max-w-4xl mx-auto px-6 py-24"
-          >
-            <div className="space-y-16">
-              <RevealOnScroll direction="left">
-                <div className="flex flex-col md:flex-row md:items-end md:gap-8 space-y-6 md:space-y-0">
-                  <div className="flex-shrink-0">
-                    <span className="text-brand-ink/40 text-[10px] uppercase font-bold tracking-[0.4em]">Illu's</span>
-                    <h2 className="text-6xl font-black uppercase tracking-tighter leading-none">
-                      ILMNNNNNNNN
-                    </h2>
-                  </div>
-                  <div className="pb-1">
-                    <p className="text-brand-ink/60 text-sm uppercase tracking-widest font-medium leading-relaxed max-w-sm">
-                      is a conceptual mockup for a clothing and accessories brand, all products displayed do not exist.
-                    </p>
-                    <div className="flex gap-4 mt-4">
-                      <a href="https://www.instagram.com/ilmnnnnnnnnnn/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-ink transition-colors"><Instagram size={20} /></a>
-                      <a href="https://x.com/ilmn25" target="_blank" rel="noopener noreferrer" className="hover:text-brand-ink transition-colors"><Twitter size={20} /></a>
-                    </div>
-                  </div>
-                </div>
-              </RevealOnScroll>
 
-
-            </div>
-          </motion.main>
-        )}
 
         {/* Newsletter Section */}
         <RevealOnScroll direction="up">
@@ -685,16 +587,7 @@ export default function App() {
                     key={product.id}
                     onClick={() => {
                       setIsSearchOpen(false);
-                      if (currentPage === 'about') {
-                        executeCoolTransition(() => {
-                          setCurrentPage('shop');
-                          // If searching, we might want to scroll to products top
-                          scrollToSection();
-                        });
-                      } else {
-                        setCurrentPage('shop');
-                        scrollToSection();
-                      }
+                      scrollToSection();
                     }}
                     className="cursor-pointer group"
                   >
