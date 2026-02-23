@@ -4,10 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ILMNNNNNNNN</title>
+    <!-- base tag helps make all asset URLS respect Vite's `base` config -->
+    <base href="%BASE_URL%">
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <!-- use the %BASE_URL% placeholder so Vite rewrites correctly when building -->
+    <script type="module" src="%BASE_URL%src/main.tsx"></script>
   </body>
 </html>
 
