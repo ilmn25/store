@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { motion, useScroll, useTransform } from 'motion/react';
-import { ShoppingBag, Menu, Search, User, ArrowRight, X, Instagram, Twitter } from 'lucide-react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
+import { ShoppingBag, Menu, Search, User, ArrowRight, X, Instagram, Twitter, ChevronRight, ChevronDown, Sparkles } from 'lucide-react';
 import { products } from './constants';
 import { Product, CartItem } from './types';
 import { ProductCard } from './components/ProductCard';
@@ -22,10 +22,46 @@ export default function App() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const currencyRef = useRef<HTMLDivElement>(null);
+
+  const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'HKD', 'RMB', 'TWD', 'KRW'];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (currencyRef.current && !currencyRef.current.contains(event.target as Node)) {
+        setIsCurrencyOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   const productGridRef = useRef<HTMLDivElement>(null);
 
+  const rates: Record<string, number> = {
+    USD: 1,
+    EUR: 0.92,
+    GBP: 0.79,
+    JPY: 150,
+    HKD: 7.8,
+    RMB: 7.2,
+    TWD: 32,
+    KRW: 1300
+  };
+
   const formatPrice = (price: number) => {
-    return `${price}$ ${currency}`;
+    const converted = (price * rates[currency]).toFixed(currency === 'JPY' || currency === 'KRW' || currency === 'TWD' ? 0 : 2);
+    const symbols: Record<string, string> = {
+      USD: '$',
+      EUR: '€',
+      GBP: '£',
+      JPY: '¥',
+      HKD: 'HK$',
+      RMB: '¥',
+      TWD: 'NT$',
+      KRW: '₩'
+    };
+    return `${symbols[currency]}${converted} ${currency}`;
   };
 
   useEffect(() => {
@@ -79,19 +115,19 @@ export default function App() {
   }, []);
 
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         p.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         p.subcategory?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (!matchesSearch) return false;
-
     if (activeCategory === 'News') return p.isNew;
     if (activeCategory === 'All') return true;
     
     const matchesCategory = p.type === activeCategory;
-    // We don't filter by subcategory anymore to allow "jump to section" while showing all
     return matchesCategory;
   });
+
+  const searchResults = products.filter(p => 
+    !searchQuery || 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    p.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.subcategory?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const groupedProducts = filteredProducts.reduce((acc, product) => {
     const sub = product.subcategory || 'Other';
@@ -137,7 +173,7 @@ export default function App() {
     <div className="min-h-screen bg-brand-bg selection:bg-brand-accent selection:text-brand-bg">
       <div className="sticky top-0 z-40">
         {/* Announcement Bar */}
-        <div className="bg-brand-ink text-brand-bg py-2 text-[10px] uppercase font-bold tracking-[0.3em] text-center">
+        <div className="bg-brand-ink text-brand-bg py-2 text-[8px] sm:text-[10px] uppercase font-bold tracking-[0.1em] sm:tracking-[0.3em] text-center px-4">
           Free Worldwide Shipping on Orders Over $200
         </div>
 
@@ -209,20 +245,47 @@ export default function App() {
               ILMNNNNNNNN
             </button>
 
-            <div className="flex items-center gap-4 flex-1 justify-end">
-              <button className="hidden sm:flex items-center gap-2 text-[9px] uppercase tracking-[0.2em] font-black text-brand-ink/40 hover:text-brand-ink transition-colors">
-                Sort By: Featured
-              </button>
-              <select 
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="hidden sm:block bg-transparent text-[10px] font-bold uppercase tracking-widest focus:outline-none cursor-pointer hover:text-brand-accent transition-colors"
-              >
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-                <option value="JPY">JPY</option>
-              </select>
+            <div className="flex items-center gap-2 sm:gap-4 flex-1 justify-end">
+
+              <div className="relative hidden sm:block" ref={currencyRef}>
+                <button 
+                  onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                  className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-brand-accent transition-colors"
+                >
+                  {currency}
+                  <ChevronDown size={12} className={`transition-transform duration-200 ${isCurrencyOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                <AnimatePresence>
+                  {isCurrencyOpen && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-full right-0 mt-2 bg-white border border-brand-ink/10 shadow-2xl rounded-2xl overflow-hidden z-50 min-w-[120px] p-2"
+                    >
+                      {currencies.map((curr) => (
+                        <button
+                          key={curr}
+                          onClick={() => {
+                            setCurrency(curr);
+                            setIsCurrencyOpen(false);
+                          }}
+                          className={`w-full px-3 py-2.5 text-[10px] font-mono uppercase tracking-widest text-left rounded-lg transition-colors flex items-center justify-between group ${
+                            currency === curr ? 'bg-brand-ink text-brand-bg font-bold' : 'text-brand-ink/40 hover:bg-brand-ink/5'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span className={`opacity-20 ${currency === curr ? 'text-brand-bg/40' : ''}`}>{currency === curr ? '>' : '/'}</span>
+                            {curr}
+                          </span>
+                          {currency === curr && <div className="w-1 h-1 rounded-full bg-brand-accent" />}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
               <button 
                 onClick={() => setIsSearchOpen(true)}
                 className="p-2 hover:bg-brand-ink/5 transition-colors hidden sm:block"
@@ -282,69 +345,132 @@ export default function App() {
                     )}
                   </div>
                 </button>
-                <button 
-                  className="p-2 -mr-2 text-brand-ink/60 hover:text-brand-ink transition-colors"
-                  onClick={() => setIsMobileMenuOpen(true)}
-                >
-                  <Menu size={24} />
-                </button>
+                
+                <div className="relative">
+                  <button
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className="w-10 h-10 flex items-center justify-center bg-brand-ink text-brand-bg rounded-xl shadow-lg active:scale-90 transition-all hover:bg-black"
+                    aria-label="Toggle menu"
+                  >
+                    {isMobileMenuOpen ? (
+                      <X className="w-5 h-5 animate-fade-in" />
+                    ) : (
+                      <Menu className="w-5 h-5 animate-fade-in" />
+                    )}
+                  </button>
+
+                  <AnimatePresence>
+                    {isMobileMenuOpen && (
+                      <>
+                        <motion.div 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="fixed inset-0 z-[45] bg-brand-ink/5 backdrop-blur-sm"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        />
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                          transition={{ duration: 0.2, ease: "easeOut" }}
+                          className="absolute top-12 right-0 mt-2 w-[calc(100vw-4rem)] max-w-[320px] bg-white rounded-3xl shadow-2xl border border-brand-ink/10 overflow-hidden z-[50] max-h-[80vh] overflow-y-auto"
+                        >
+                          <div className="p-5 space-y-6">
+                            <div className="space-y-4">
+                              <div className="flex justify-between items-center px-1">
+                                <p className="text-[10px] font-bold text-brand-ink/40 uppercase tracking-widest">Navigation</p>
+                              </div>
+                              <div className="space-y-1">
+                                {navItems.map((item) => (
+                                  <div key={item.name} className="space-y-1">
+                                    <button
+                                      onClick={() => {
+                                        if (item.type !== 'dropdown') {
+                                          setIsMobileMenuOpen(false);
+                                          setActiveCategory(item.name);
+                                          setActiveSubcategory(null);
+                                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        } else {
+                                          setActiveCategory(item.name);
+                                        }
+                                      }}
+                                      className={`w-full flex items-center justify-between p-2 transition-all text-left group ${
+                                        activeCategory === item.name ? 'text-brand-ink' : 'text-brand-ink/40 hover:text-brand-ink'
+                                      }`}
+                                    >
+                                      <span className="text-[11px] font-mono uppercase tracking-widest flex items-center gap-2">
+                                        <span className="opacity-20">/</span>
+                                        {item.name}
+                                      </span>
+                                      {item.type === 'dropdown' ? (
+                                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${activeCategory === item.name ? 'rotate-180' : 'opacity-20'}`} />
+                                      ) : (
+                                        <ChevronRight className={`w-3.5 h-3.5 ${activeCategory === item.name ? 'text-brand-accent' : 'opacity-0 group-hover:opacity-20'}`} />
+                                      )}
+                                    </button>
+                                    
+                                    {item.type === 'dropdown' && activeCategory === item.name && (
+                                      <div className="grid grid-cols-1 gap-1 pl-4 animate-slide-up border-l border-brand-ink/5 ml-3">
+                                        {item.items?.map(sub => (
+                                          <button
+                                            key={sub}
+                                            onClick={() => {
+                                              setIsMobileMenuOpen(false);
+                                              setActiveCategory(item.name);
+                                              setActiveSubcategory(sub);
+                                              scrollToSection(sub);
+                                            }}
+                                            className={`w-full p-2 text-[10px] font-mono uppercase tracking-widest text-left transition-colors flex items-center justify-between group ${
+                                              activeSubcategory === sub ? 'text-brand-ink font-bold' : 'text-brand-ink/30 hover:text-brand-ink'
+                                            }`}
+                                          >
+                                            <span className="flex items-center gap-2">
+                                              <span className="opacity-20">|_</span>
+                                              {sub}
+                                            </span>
+                                            <ChevronRight className={`w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity ${activeSubcategory === sub ? 'opacity-100 text-brand-accent' : ''}`} />
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="space-y-4 pt-4 border-t border-brand-ink/5">
+                              <p className="text-[10px] font-bold text-brand-ink/40 uppercase tracking-widest px-1">Currency</p>
+                              <div className="grid grid-cols-2 gap-2">
+                                {currencies.map((curr) => (
+                                  <button
+                                    key={curr}
+                                    onClick={() => {
+                                      setCurrency(curr);
+                                      setIsMobileMenuOpen(false);
+                                    }}
+                                    className={`p-3 text-[10px] font-mono uppercase tracking-widest text-left rounded-xl transition-all flex items-center gap-2 ${
+                                      currency === curr ? 'bg-brand-ink text-brand-bg font-bold' : 'bg-brand-ink/5 text-brand-ink/40'
+                                    }`}
+                                  >
+                                    <span className="opacity-20">{currency === curr ? '>' : '/'}</span>
+                                    {curr}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </div>
           </div>
         </nav>
 
-        {/* Mobile Menu Overlay */}
-        <motion.div
-          initial={{ x: '-100%' }}
-          animate={{ x: isMobileMenuOpen ? '0%' : '-100%' }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="fixed inset-0 z-50 bg-white p-6 lg:hidden"
-        >
-          <div className="flex justify-end mb-8">
-            <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 -mr-2 text-brand-ink/60 hover:text-brand-ink transition-colors">
-              <X size={24} />
-            </button>
-          </div>
-          <div className="flex flex-col gap-6">
-            {navItems.map(item => (
-              <div key={item.name} className="relative group">
-                <button 
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    setActiveCategory(item.name);
-                    setActiveSubcategory(null);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className={`text-lg uppercase tracking-[0.2em] font-bold transition-all hover:text-brand-accent flex items-center gap-1 ${ activeCategory === item.name ? 'text-brand-ink' : 'text-brand-ink/30' }`}
-                >
-                  {item.name}
-                  {item.type === 'dropdown' && <span className="text-sm opacity-50">▼</span>}
-                </button>
-                
-                {item.type === 'dropdown' && (
-                  <div className="mt-4 pl-4">
-                    <div className="flex flex-col gap-3">
-                      {item.items?.map(sub => (
-                        <button
-                          key={sub}
-                          onClick={() => {
-                            setIsMobileMenuOpen(false);
-                            setActiveCategory(item.name);
-                            setActiveSubcategory(sub);
-                            scrollToSection(sub);
-                          }}
-                          className={`text-base uppercase tracking-widest text-left hover:text-brand-accent transition-colors ${ activeSubcategory === sub ? 'text-brand-ink font-bold' : 'text-brand-ink/40' }`}
-                        >
-                          {sub}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </motion.div>
+        {/* Mobile Menu Overlay Removed - Replaced by Dropdown */}
 
       </div>
 
@@ -425,7 +551,7 @@ export default function App() {
                               product={product} 
                               onAddToCart={addToCart} 
                               onViewDetails={openProductDetails}
-                              currency={currency}
+                              formatPrice={formatPrice}
                             />
                           ))}
                         </div>
@@ -447,7 +573,7 @@ export default function App() {
                               product={product} 
                               onAddToCart={addToCart} 
                               onViewDetails={openProductDetails}
-                              currency={currency}
+                              formatPrice={formatPrice}
                             />
                           ))}
                         </div>
@@ -492,9 +618,6 @@ export default function App() {
             <div className="max-w-[1800px] mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-16">
               <div className="col-span-1 md:col-span-1">
                 <h3 className="text-xl font-black uppercase tracking-tighter mb-8">ILMNNNNNNNN</h3>
-                <p className="text-brand-ink/40 text-[10px] uppercase tracking-[0.2em] font-bold max-w-xs leading-loose">
-                  illu's fake online store
-                </p>
               </div>
               <div>
                 <h4 className="text-[10px] uppercase tracking-[0.3em] font-black mb-8">Legal</h4>
@@ -524,7 +647,7 @@ export default function App() {
         items={cartItems}
         onUpdateQuantity={updateQuantity}
         onRemove={removeFromCart}
-        currency={currency}
+        formatPrice={formatPrice}
       />
 
       <ProductDetailsModal 
@@ -532,83 +655,88 @@ export default function App() {
         isOpen={isDetailsOpen}
         onClose={() => setIsDetailsOpen(false)}
         onAddToCart={addToCart}
-        currency={currency}
+        formatPrice={formatPrice}
       />
 
       {/* Search Overlay */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: isSearchOpen ? 1 : 0 }}
-        className={`fixed inset-0 bg-brand-bg/98 z-[100] flex flex-col p-6 md:p-24 ${isSearchOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        className={`fixed inset-0 bg-brand-bg/98 z-[100] flex flex-col ${isSearchOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
       >
-        <button 
-          onClick={() => setIsSearchOpen(false)}
-          className="absolute top-8 right-8 p-4 hover:bg-brand-ink/5 rounded-full transition-colors"
-        >
-          <X size={32} />
-        </button>
+        <div className="flex justify-end p-6 md:p-12">
+          <button 
+            onClick={() => setIsSearchOpen(false)}
+            className="p-4 hover:bg-brand-ink/5 rounded-full transition-colors"
+          >
+            <X size={32} />
+          </button>
+        </div>
 
-        <div className="max-w-4xl mx-auto w-full mt-24">
-          <div className="relative">
-            <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-brand-ink/20" size={40} />
-            <input 
-              type="text"
-              autoFocus
-              placeholder="SEARCH PRODUCTS..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent border-b-2 border-brand-ink/10 py-8 pl-16 text-4xl md:text-6xl font-black uppercase tracking-tighter focus:outline-none focus:border-brand-ink transition-colors placeholder:text-brand-ink/5"
-            />
-          </div>
-
-          <div className="mt-12">
-            <p className="text-[10px] uppercase tracking-[0.3em] font-black text-brand-ink/40 mb-8">Popular Searches</p>
-            <div className="flex flex-wrap gap-4">
-              {['Hoodies', 'Cyberpunk', 'Keychains', 'Neon'].map(term => (
-                <button 
-                  key={term}
-                  onClick={() => setSearchQuery(term)}
-                  className="px-6 py-3 border border-brand-ink/10 rounded-full text-[10px] uppercase font-bold tracking-widest hover:border-brand-ink transition-colors"
-                >
-                  {term}
-                </button>
-              ))}
+        <div className="flex-1 overflow-y-auto px-6 pb-24">
+          <div className="max-w-6xl mx-auto w-full">
+            <div className="relative">
+              <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-brand-ink/20" size={40} />
+              <input 
+                type="text"
+                autoFocus
+                placeholder="SEARCH PRODUCTS"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-transparent border-b-2 border-brand-ink/10 py-4 pl-16 text-3xl md:text-6xl font-black uppercase tracking-tighter focus:outline-none focus:border-brand-ink transition-colors placeholder:text-brand-ink/5"
+              />
             </div>
-          </div>
 
-          {searchQuery && (
             <div className="mt-24">
-              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-brand-ink/40 mb-8">
-                Results for "{searchQuery}" ({filteredProducts.length})
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                {filteredProducts.slice(0, 4).map(product => (
-                  <div 
-                    key={product.id}
-                    onClick={() => {
-                      setIsSearchOpen(false);
-                      scrollToSection();
-                    }}
-                    className="cursor-pointer group"
+              <div className="flex justify-between items-end mb-12">
+                <p className="text-[10px] uppercase tracking-[0.3em] font-black text-brand-ink/40">
+                  {searchQuery ? `Results for "${searchQuery}"` : 'All Products'} ({searchResults.length})
+                </p>
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="text-[8px] uppercase font-bold tracking-widest text-brand-ink/20 hover:text-brand-ink transition-colors"
                   >
-                    <div className="aspect-square bg-brand-ink/5 rounded-xl overflow-hidden mb-4">
-                      <img src={product.url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    </div>
-                    <h4 className="text-[10px] font-black uppercase tracking-widest">{product.name}</h4>
-                    <p className="text-[10px] text-brand-ink/40 uppercase tracking-widest">{product.price}$ {currency}</p>
-                  </div>
-                ))}
+                    Clear Search
+                  </button>
+                )}
               </div>
-              {filteredProducts.length > 4 && (
-                <button 
-                  onClick={() => setIsSearchOpen(false)}
-                  className="mt-12 text-[10px] uppercase font-black tracking-[0.3em] flex items-center gap-2 hover:text-brand-accent transition-colors"
-                >
-                  View All Results <ArrowRight size={14} />
-                </button>
+
+              {searchResults.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-10">
+                  {searchResults.map(product => (
+                    <motion.div 
+                      key={product.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      onClick={() => {
+                        openProductDetails(product);
+                      }}
+                      className="cursor-pointer group"
+                    >
+                      <div className="aspect-[4/5] bg-brand-ink/5 rounded-2xl overflow-hidden mb-4 relative">
+                        <img 
+                          src={product.url} 
+                          alt={product.name} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                        />
+                        <div className="absolute inset-0 bg-brand-ink/0 group-hover:bg-brand-ink/5 transition-colors duration-300" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[8px] text-brand-ink/30 uppercase font-bold tracking-widest">{product.type}</p>
+                        <h4 className="text-[11px] font-black uppercase tracking-tight leading-tight">{product.name}</h4>
+                        <p className="text-[10px] font-mono text-brand-accent">{formatPrice(product.price)}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-24 text-center border-2 border-dashed border-brand-ink/5 rounded-3xl">
+                  <p className="text-[10px] uppercase tracking-[0.3em] font-black text-brand-ink/20">No matching products found.</p>
+                </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </motion.div>
     </div>

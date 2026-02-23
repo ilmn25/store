@@ -9,10 +9,10 @@ interface CartProps {
   items: CartItem[];
   onUpdateQuantity: (id: string, delta: number) => void;
   onRemove: (id: string) => void;
-  currency: string;
+  formatPrice: (price: number) => string;
 }
 
-export const Cart: React.FC<CartProps> = ({ isOpen, onClose, items, onUpdateQuantity, onRemove, currency }) => {
+export const Cart: React.FC<CartProps> = ({ isOpen, onClose, items, onUpdateQuantity, onRemove, formatPrice }) => {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
@@ -30,7 +30,7 @@ export const Cart: React.FC<CartProps> = ({ isOpen, onClose, items, onUpdateQuan
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[80vh] bg-brand-bg border border-brand-ink/10 z-50 flex flex-col rounded-3xl shadow-2xl overflow-hidden"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] max-w-lg max-h-[80vh] bg-brand-bg border border-brand-ink/10 z-50 flex flex-col rounded-3xl shadow-2xl overflow-hidden"
           >
             <div className="p-6 border-b border-brand-ink/10 flex items-center justify-between">
               <h2 className="text-xs uppercase font-bold tracking-[0.3em]">Shopping Bag</h2>
@@ -83,7 +83,7 @@ export const Cart: React.FC<CartProps> = ({ isOpen, onClose, items, onUpdateQuan
                             <Plus size={12} />
                           </button>
                         </div>
-                        <span className="font-mono text-sm">{item.price * item.quantity}$ {currency}</span>
+                        <span className="font-mono text-sm">{formatPrice(item.price * item.quantity)}</span>
                       </div>
                     </div>
                   </motion.div>
@@ -95,7 +95,7 @@ export const Cart: React.FC<CartProps> = ({ isOpen, onClose, items, onUpdateQuan
               <div className="p-6 border-t border-brand-ink/10 space-y-6">
                 <div className="flex justify-between items-end">
                   <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-ink/40">Total</span>
-                  <span className="font-mono text-2xl">{total}$ {currency}</span>
+                  <span className="font-mono text-2xl">{formatPrice(total)}</span>
                 </div>
                 <button className="w-full py-5 bg-brand-ink text-brand-bg text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-brand-accent transition-all">
                   Checkout Now
