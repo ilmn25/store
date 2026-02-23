@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { motion, useScroll, useTransform } from 'motion/react';
-import { ShoppingBag, Menu, Search, User, ArrowRight, X, Instagram, Twitter } from 'lucide-react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
+import { ShoppingBag, Menu, Search, User, ArrowRight, X, Instagram, Twitter, ChevronRight, ChevronDown, Sparkles } from 'lucide-react';
 import { products } from './constants';
 import { Product, CartItem } from './types';
 import { ProductCard } from './components/ProductCard';
@@ -22,6 +22,20 @@ export default function App() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const currencyRef = useRef<HTMLDivElement>(null);
+
+  const currencies = ['USD', 'EUR', 'GBP', 'JPY'];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (currencyRef.current && !currencyRef.current.contains(event.target as Node)) {
+        setIsCurrencyOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   const productGridRef = useRef<HTMLDivElement>(null);
 
   const formatPrice = (price: number) => {
@@ -137,7 +151,7 @@ export default function App() {
     <div className="min-h-screen bg-brand-bg selection:bg-brand-accent selection:text-brand-bg">
       <div className="sticky top-0 z-40">
         {/* Announcement Bar */}
-        <div className="bg-brand-ink text-brand-bg py-2 text-[10px] uppercase font-bold tracking-[0.3em] text-center">
+        <div className="bg-brand-ink text-brand-bg py-2 text-[8px] sm:text-[10px] uppercase font-bold tracking-[0.1em] sm:tracking-[0.3em] text-center px-4">
           Free Worldwide Shipping on Orders Over $200
         </div>
 
@@ -213,16 +227,48 @@ export default function App() {
               <button className="hidden sm:flex items-center gap-2 text-[9px] uppercase tracking-[0.2em] font-black text-brand-ink/40 hover:text-brand-ink transition-colors">
                 Sort By: Featured
               </button>
-              <select 
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="hidden sm:block bg-transparent text-[10px] font-bold uppercase tracking-widest focus:outline-none cursor-pointer hover:text-brand-accent transition-colors"
-              >
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-                <option value="JPY">JPY</option>
-              </select>
+              <div className="relative hidden sm:block" ref={currencyRef}>
+                <button 
+                  onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                  className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-brand-accent transition-colors"
+                >
+                  {currency}
+                  <ChevronDown size={12} className={`transition-transform duration-200 ${isCurrencyOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                <AnimatePresence>
+                  {isCurrencyOpen && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-full right-0 mt-2 bg-white border border-brand-ink/10 shadow-2xl rounded-2xl overflow-hidden z-50 min-w-[120px] p-2"
+                    >
+                      <div className="px-3 py-2 mb-1">
+                        <p className="text-[8px] font-bold text-brand-ink/30 uppercase tracking-[0.2em]">Select Currency</p>
+                      </div>
+                      {currencies.map((curr) => (
+                        <button
+                          key={curr}
+                          onClick={() => {
+                            setCurrency(curr);
+                            setIsCurrencyOpen(false);
+                          }}
+                          className={`w-full px-3 py-2.5 text-[10px] font-mono uppercase tracking-widest text-left rounded-lg transition-colors flex items-center justify-between group ${
+                            currency === curr ? 'bg-brand-ink text-brand-bg font-bold' : 'text-brand-ink/40 hover:bg-brand-ink/5'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span className={`opacity-20 ${currency === curr ? 'text-brand-bg/40' : ''}`}>{currency === curr ? '>' : '/'}</span>
+                            {curr}
+                          </span>
+                          {currency === curr && <div className="w-1 h-1 rounded-full bg-brand-accent" />}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
               <button 
                 onClick={() => setIsSearchOpen(true)}
                 className="p-2 hover:bg-brand-ink/5 transition-colors hidden sm:block"
@@ -282,69 +328,132 @@ export default function App() {
                     )}
                   </div>
                 </button>
-                <button 
-                  className="p-2 -mr-2 text-brand-ink/60 hover:text-brand-ink transition-colors"
-                  onClick={() => setIsMobileMenuOpen(true)}
-                >
-                  <Menu size={24} />
-                </button>
+                
+                <div className="relative">
+                  <button
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className="w-10 h-10 flex items-center justify-center bg-brand-ink text-brand-bg rounded-xl shadow-lg active:scale-90 transition-all hover:bg-black"
+                    aria-label="Toggle menu"
+                  >
+                    {isMobileMenuOpen ? (
+                      <X className="w-5 h-5 animate-fade-in" />
+                    ) : (
+                      <Menu className="w-5 h-5 animate-fade-in" />
+                    )}
+                  </button>
+
+                  <AnimatePresence>
+                    {isMobileMenuOpen && (
+                      <>
+                        <motion.div 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="fixed inset-0 z-[45] bg-brand-ink/5 backdrop-blur-sm"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        />
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                          transition={{ duration: 0.2, ease: "easeOut" }}
+                          className="absolute top-12 right-0 mt-2 w-[calc(100vw-4rem)] max-w-[320px] bg-white rounded-3xl shadow-2xl border border-brand-ink/10 overflow-hidden z-[50] max-h-[80vh] overflow-y-auto"
+                        >
+                          <div className="p-5 space-y-6">
+                            <div className="space-y-4">
+                              <div className="flex justify-between items-center px-1">
+                                <p className="text-[10px] font-bold text-brand-ink/40 uppercase tracking-widest">Navigation</p>
+                              </div>
+                              <div className="space-y-1">
+                                {navItems.map((item) => (
+                                  <div key={item.name} className="space-y-1">
+                                    <button
+                                      onClick={() => {
+                                        if (item.type !== 'dropdown') {
+                                          setIsMobileMenuOpen(false);
+                                          setActiveCategory(item.name);
+                                          setActiveSubcategory(null);
+                                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        } else {
+                                          setActiveCategory(item.name);
+                                        }
+                                      }}
+                                      className={`w-full flex items-center justify-between p-2 transition-all text-left group ${
+                                        activeCategory === item.name ? 'text-brand-ink' : 'text-brand-ink/40 hover:text-brand-ink'
+                                      }`}
+                                    >
+                                      <span className="text-[11px] font-mono uppercase tracking-widest flex items-center gap-2">
+                                        <span className="opacity-20">/</span>
+                                        {item.name}
+                                      </span>
+                                      {item.type === 'dropdown' ? (
+                                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${activeCategory === item.name ? 'rotate-180' : 'opacity-20'}`} />
+                                      ) : (
+                                        <ChevronRight className={`w-3.5 h-3.5 ${activeCategory === item.name ? 'text-brand-accent' : 'opacity-0 group-hover:opacity-20'}`} />
+                                      )}
+                                    </button>
+                                    
+                                    {item.type === 'dropdown' && activeCategory === item.name && (
+                                      <div className="grid grid-cols-1 gap-1 pl-4 animate-slide-up border-l border-brand-ink/5 ml-3">
+                                        {item.items?.map(sub => (
+                                          <button
+                                            key={sub}
+                                            onClick={() => {
+                                              setIsMobileMenuOpen(false);
+                                              setActiveCategory(item.name);
+                                              setActiveSubcategory(sub);
+                                              scrollToSection(sub);
+                                            }}
+                                            className={`w-full p-2 text-[10px] font-mono uppercase tracking-widest text-left transition-colors flex items-center justify-between group ${
+                                              activeSubcategory === sub ? 'text-brand-ink font-bold' : 'text-brand-ink/30 hover:text-brand-ink'
+                                            }`}
+                                          >
+                                            <span className="flex items-center gap-2">
+                                              <span className="opacity-20">|_</span>
+                                              {sub}
+                                            </span>
+                                            <ChevronRight className={`w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity ${activeSubcategory === sub ? 'opacity-100 text-brand-accent' : ''}`} />
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="space-y-4 pt-4 border-t border-brand-ink/5">
+                              <p className="text-[10px] font-bold text-brand-ink/40 uppercase tracking-widest px-1">Currency</p>
+                              <div className="grid grid-cols-2 gap-2">
+                                {currencies.map((curr) => (
+                                  <button
+                                    key={curr}
+                                    onClick={() => {
+                                      setCurrency(curr);
+                                      setIsMobileMenuOpen(false);
+                                    }}
+                                    className={`p-3 text-[10px] font-mono uppercase tracking-widest text-left rounded-xl transition-all flex items-center gap-2 ${
+                                      currency === curr ? 'bg-brand-ink text-brand-bg font-bold' : 'bg-brand-ink/5 text-brand-ink/40'
+                                    }`}
+                                  >
+                                    <span className="opacity-20">{currency === curr ? '>' : '/'}</span>
+                                    {curr}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </div>
           </div>
         </nav>
 
-        {/* Mobile Menu Overlay */}
-        <motion.div
-          initial={{ x: '-100%' }}
-          animate={{ x: isMobileMenuOpen ? '0%' : '-100%' }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="fixed inset-0 z-50 bg-white p-6 lg:hidden"
-        >
-          <div className="flex justify-end mb-8">
-            <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 -mr-2 text-brand-ink/60 hover:text-brand-ink transition-colors">
-              <X size={24} />
-            </button>
-          </div>
-          <div className="flex flex-col gap-6">
-            {navItems.map(item => (
-              <div key={item.name} className="relative group">
-                <button 
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    setActiveCategory(item.name);
-                    setActiveSubcategory(null);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className={`text-lg uppercase tracking-[0.2em] font-bold transition-all hover:text-brand-accent flex items-center gap-1 ${ activeCategory === item.name ? 'text-brand-ink' : 'text-brand-ink/30' }`}
-                >
-                  {item.name}
-                  {item.type === 'dropdown' && <span className="text-sm opacity-50">▼</span>}
-                </button>
-                
-                {item.type === 'dropdown' && (
-                  <div className="mt-4 pl-4">
-                    <div className="flex flex-col gap-3">
-                      {item.items?.map(sub => (
-                        <button
-                          key={sub}
-                          onClick={() => {
-                            setIsMobileMenuOpen(false);
-                            setActiveCategory(item.name);
-                            setActiveSubcategory(sub);
-                            scrollToSection(sub);
-                          }}
-                          className={`text-base uppercase tracking-widest text-left hover:text-brand-accent transition-colors ${ activeSubcategory === sub ? 'text-brand-ink font-bold' : 'text-brand-ink/40' }`}
-                        >
-                          {sub}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </motion.div>
+        {/* Mobile Menu Overlay Removed - Replaced by Dropdown */}
 
       </div>
 

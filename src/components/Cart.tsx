@@ -30,7 +30,7 @@ export const Cart: React.FC<CartProps> = ({ isOpen, onClose, items, onUpdateQuan
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[80vh] bg-brand-bg border border-brand-ink/10 z-50 flex flex-col rounded-3xl shadow-2xl overflow-hidden"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] max-w-lg max-h-[80vh] bg-brand-bg border border-brand-ink/10 z-50 flex flex-col rounded-3xl shadow-2xl overflow-hidden"
           >
             <div className="p-6 border-b border-brand-ink/10 flex items-center justify-between">
               <h2 className="text-xs uppercase font-bold tracking-[0.3em]">Shopping Bag</h2>

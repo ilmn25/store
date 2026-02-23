@@ -35,11 +35,11 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="fixed inset-0 md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-full max-w-5xl h-full md:h-[85vh] bg-brand-bg z-[120] md:rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row"
+            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-auto md:w-[calc(100%-3rem)] lg:w-[calc(100%-4rem)] max-w-5xl h-auto md:h-[85vh] bg-brand-bg z-[120] rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row"
           >
             <button 
               onClick={onClose}
-              className="absolute top-6 right-6 p-3 bg-white/80 backdrop-blur-md rounded-full hover:bg-white transition-colors z-10 shadow-sm"
+              className="absolute top-4 right-4 md:top-8 md:right-8 p-3 bg-white/80 backdrop-blur-md rounded-full hover:bg-white transition-colors z-20 shadow-sm"
             >
               <X size={24} />
             </button>
@@ -52,9 +52,9 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
               />
             </div>
 
-            <div className="w-full md:w-1/2 p-6 md:p-12 flex flex-col flex-shrink-0 h-auto md:flex-1 md:min-h-0">
+            <div className="w-full md:w-1/2 p-6 md:p-16 flex flex-col flex-shrink-0 h-auto md:flex-1 md:min-h-0">
               <div className="space-y-4 md:space-y-8">
-                <div className="flex justify-between items-start gap-4">
+                <div className="space-y-4">
                   <div>
                     <span className="text-brand-ink/40 text-[8px] md:text-[10px] uppercase font-bold tracking-[0.4em] mb-1 md:mb-4 block">
                       {product.type} / {product.subcategory}
@@ -63,7 +63,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                       {product.name}
                     </h2>
                   </div>
-                  <p className="text-base md:text-2xl font-mono whitespace-nowrap">{product.price}$ {currency}</p>
+                  <p className="text-base md:text-2xl font-mono text-brand-accent">{product.price}$ {currency}</p>
                 </div>
 
                 <div className="space-y-2 md:space-y-4"> 
