@@ -25,7 +25,7 @@ export default function App() {
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const currencyRef = useRef<HTMLDivElement>(null);
 
-  const currencies = ['USD', 'EUR', 'GBP', 'JPY'];
+  const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'HKD', 'RMB', 'TWD', 'KRW'];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -38,8 +38,30 @@ export default function App() {
   }, []);
   const productGridRef = useRef<HTMLDivElement>(null);
 
+  const rates: Record<string, number> = {
+    USD: 1,
+    EUR: 0.92,
+    GBP: 0.79,
+    JPY: 150,
+    HKD: 7.8,
+    RMB: 7.2,
+    TWD: 32,
+    KRW: 1300
+  };
+
   const formatPrice = (price: number) => {
-    return `${price}$ ${currency}`;
+    const converted = (price * rates[currency]).toFixed(currency === 'JPY' || currency === 'KRW' || currency === 'TWD' ? 0 : 2);
+    const symbols: Record<string, string> = {
+      USD: '$',
+      EUR: '€',
+      GBP: '£',
+      JPY: '¥',
+      HKD: 'HK$',
+      RMB: '¥',
+      TWD: 'NT$',
+      KRW: '₩'
+    };
+    return `${symbols[currency]}${converted} ${currency}`;
   };
 
   useEffect(() => {
@@ -93,19 +115,19 @@ export default function App() {
   }, []);
 
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         p.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         p.subcategory?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (!matchesSearch) return false;
-
     if (activeCategory === 'News') return p.isNew;
     if (activeCategory === 'All') return true;
     
     const matchesCategory = p.type === activeCategory;
-    // We don't filter by subcategory anymore to allow "jump to section" while showing all
     return matchesCategory;
   });
+
+  const searchResults = products.filter(p => 
+    !searchQuery || 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    p.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.subcategory?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const groupedProducts = filteredProducts.reduce((acc, product) => {
     const sub = product.subcategory || 'Other';
@@ -223,10 +245,8 @@ export default function App() {
               ILMNNNNNNNN
             </button>
 
-            <div className="flex items-center gap-4 flex-1 justify-end">
-              <button className="hidden sm:flex items-center gap-2 text-[9px] uppercase tracking-[0.2em] font-black text-brand-ink/40 hover:text-brand-ink transition-colors">
-                Sort By: Featured
-              </button>
+            <div className="flex items-center gap-2 sm:gap-4 flex-1 justify-end">
+
               <div className="relative hidden sm:block" ref={currencyRef}>
                 <button 
                   onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
@@ -244,9 +264,6 @@ export default function App() {
                       exit={{ opacity: 0, y: 10 }}
                       className="absolute top-full right-0 mt-2 bg-white border border-brand-ink/10 shadow-2xl rounded-2xl overflow-hidden z-50 min-w-[120px] p-2"
                     >
-                      <div className="px-3 py-2 mb-1">
-                        <p className="text-[8px] font-bold text-brand-ink/30 uppercase tracking-[0.2em]">Select Currency</p>
-                      </div>
                       {currencies.map((curr) => (
                         <button
                           key={curr}
@@ -534,7 +551,7 @@ export default function App() {
                               product={product} 
                               onAddToCart={addToCart} 
                               onViewDetails={openProductDetails}
-                              currency={currency}
+                              formatPrice={formatPrice}
                             />
                           ))}
                         </div>
@@ -556,7 +573,7 @@ export default function App() {
                               product={product} 
                               onAddToCart={addToCart} 
                               onViewDetails={openProductDetails}
-                              currency={currency}
+                              formatPrice={formatPrice}
                             />
                           ))}
                         </div>
@@ -601,9 +618,6 @@ export default function App() {
             <div className="max-w-[1800px] mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-16">
               <div className="col-span-1 md:col-span-1">
                 <h3 className="text-xl font-black uppercase tracking-tighter mb-8">ILMNNNNNNNN</h3>
-                <p className="text-brand-ink/40 text-[10px] uppercase tracking-[0.2em] font-bold max-w-xs leading-loose">
-                  illu's fake online store
-                </p>
               </div>
               <div>
                 <h4 className="text-[10px] uppercase tracking-[0.3em] font-black mb-8">Legal</h4>
@@ -633,7 +647,7 @@ export default function App() {
         items={cartItems}
         onUpdateQuantity={updateQuantity}
         onRemove={removeFromCart}
-        currency={currency}
+        formatPrice={formatPrice}
       />
 
       <ProductDetailsModal 
@@ -641,83 +655,88 @@ export default function App() {
         isOpen={isDetailsOpen}
         onClose={() => setIsDetailsOpen(false)}
         onAddToCart={addToCart}
-        currency={currency}
+        formatPrice={formatPrice}
       />
 
       {/* Search Overlay */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: isSearchOpen ? 1 : 0 }}
-        className={`fixed inset-0 bg-brand-bg/98 z-[100] flex flex-col p-6 md:p-24 ${isSearchOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        className={`fixed inset-0 bg-brand-bg/98 z-[100] flex flex-col ${isSearchOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
       >
-        <button 
-          onClick={() => setIsSearchOpen(false)}
-          className="absolute top-8 right-8 p-4 hover:bg-brand-ink/5 rounded-full transition-colors"
-        >
-          <X size={32} />
-        </button>
+        <div className="flex justify-end p-6 md:p-12">
+          <button 
+            onClick={() => setIsSearchOpen(false)}
+            className="p-4 hover:bg-brand-ink/5 rounded-full transition-colors"
+          >
+            <X size={32} />
+          </button>
+        </div>
 
-        <div className="max-w-4xl mx-auto w-full mt-24">
-          <div className="relative">
-            <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-brand-ink/20" size={40} />
-            <input 
-              type="text"
-              autoFocus
-              placeholder="SEARCH PRODUCTS..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent border-b-2 border-brand-ink/10 py-8 pl-16 text-4xl md:text-6xl font-black uppercase tracking-tighter focus:outline-none focus:border-brand-ink transition-colors placeholder:text-brand-ink/5"
-            />
-          </div>
-
-          <div className="mt-12">
-            <p className="text-[10px] uppercase tracking-[0.3em] font-black text-brand-ink/40 mb-8">Popular Searches</p>
-            <div className="flex flex-wrap gap-4">
-              {['Hoodies', 'Cyberpunk', 'Keychains', 'Neon'].map(term => (
-                <button 
-                  key={term}
-                  onClick={() => setSearchQuery(term)}
-                  className="px-6 py-3 border border-brand-ink/10 rounded-full text-[10px] uppercase font-bold tracking-widest hover:border-brand-ink transition-colors"
-                >
-                  {term}
-                </button>
-              ))}
+        <div className="flex-1 overflow-y-auto px-6 pb-24">
+          <div className="max-w-6xl mx-auto w-full">
+            <div className="relative">
+              <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-brand-ink/20" size={40} />
+              <input 
+                type="text"
+                autoFocus
+                placeholder="SEARCH PRODUCTS"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-transparent border-b-2 border-brand-ink/10 py-4 pl-16 text-3xl md:text-6xl font-black uppercase tracking-tighter focus:outline-none focus:border-brand-ink transition-colors placeholder:text-brand-ink/5"
+              />
             </div>
-          </div>
 
-          {searchQuery && (
             <div className="mt-24">
-              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-brand-ink/40 mb-8">
-                Results for "{searchQuery}" ({filteredProducts.length})
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                {filteredProducts.slice(0, 4).map(product => (
-                  <div 
-                    key={product.id}
-                    onClick={() => {
-                      setIsSearchOpen(false);
-                      scrollToSection();
-                    }}
-                    className="cursor-pointer group"
+              <div className="flex justify-between items-end mb-12">
+                <p className="text-[10px] uppercase tracking-[0.3em] font-black text-brand-ink/40">
+                  {searchQuery ? `Results for "${searchQuery}"` : 'All Products'} ({searchResults.length})
+                </p>
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="text-[8px] uppercase font-bold tracking-widest text-brand-ink/20 hover:text-brand-ink transition-colors"
                   >
-                    <div className="aspect-square bg-brand-ink/5 rounded-xl overflow-hidden mb-4">
-                      <img src={product.url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    </div>
-                    <h4 className="text-[10px] font-black uppercase tracking-widest">{product.name}</h4>
-                    <p className="text-[10px] text-brand-ink/40 uppercase tracking-widest">{product.price}$ {currency}</p>
-                  </div>
-                ))}
+                    Clear Search
+                  </button>
+                )}
               </div>
-              {filteredProducts.length > 4 && (
-                <button 
-                  onClick={() => setIsSearchOpen(false)}
-                  className="mt-12 text-[10px] uppercase font-black tracking-[0.3em] flex items-center gap-2 hover:text-brand-accent transition-colors"
-                >
-                  View All Results <ArrowRight size={14} />
-                </button>
+
+              {searchResults.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-10">
+                  {searchResults.map(product => (
+                    <motion.div 
+                      key={product.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      onClick={() => {
+                        openProductDetails(product);
+                      }}
+                      className="cursor-pointer group"
+                    >
+                      <div className="aspect-[4/5] bg-brand-ink/5 rounded-2xl overflow-hidden mb-4 relative">
+                        <img 
+                          src={product.url} 
+                          alt={product.name} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                        />
+                        <div className="absolute inset-0 bg-brand-ink/0 group-hover:bg-brand-ink/5 transition-colors duration-300" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[8px] text-brand-ink/30 uppercase font-bold tracking-widest">{product.type}</p>
+                        <h4 className="text-[11px] font-black uppercase tracking-tight leading-tight">{product.name}</h4>
+                        <p className="text-[10px] font-mono text-brand-accent">{formatPrice(product.price)}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-24 text-center border-2 border-dashed border-brand-ink/5 rounded-3xl">
+                  <p className="text-[10px] uppercase tracking-[0.3em] font-black text-brand-ink/20">No matching products found.</p>
+                </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </motion.div>
     </div>

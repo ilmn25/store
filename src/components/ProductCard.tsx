@@ -9,10 +9,10 @@ interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product) => void;
   onViewDetails: (product: Product) => void;
-  currency: string;
+  formatPrice: (price: number) => string;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewDetails, currency }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewDetails, formatPrice }) => {
   return (
     <RevealOnScroll direction="up">
       <div 
@@ -54,7 +54,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
           <p className="text-[10px] text-brand-ink/40 uppercase tracking-widest">{product.type}</p>
         </div>
         <div className="mt-4 flex justify-between items-baseline">
-          <span className="font-mono text-sm">{product.price}$ {currency}</span>
+          <span className="font-mono text-sm">{formatPrice(product.price)}</span>
         </div>
       </div>
     </div>

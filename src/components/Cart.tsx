@@ -9,10 +9,10 @@ interface CartProps {
   items: CartItem[];
   onUpdateQuantity: (id: string, delta: number) => void;
   onRemove: (id: string) => void;
-  currency: string;
+  formatPrice: (price: number) => string;
 }
 
-export const Cart: React.FC<CartProps> = ({ isOpen, onClose, items, onUpdateQuantity, onRemove, currency }) => {
+export const Cart: React.FC<CartProps> = ({ isOpen, onClose, items, onUpdateQuantity, onRemove, formatPrice }) => {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
@@ -83,7 +83,7 @@ export const Cart: React.FC<CartProps> = ({ isOpen, onClose, items, onUpdateQuan
                             <Plus size={12} />
                           </button>
                         </div>
-                        <span className="font-mono text-sm">{item.price * item.quantity}$ {currency}</span>
+                        <span className="font-mono text-sm">{formatPrice(item.price * item.quantity)}</span>
                       </div>
                     </div>
                   </motion.div>
@@ -95,7 +95,7 @@ export const Cart: React.FC<CartProps> = ({ isOpen, onClose, items, onUpdateQuan
               <div className="p-6 border-t border-brand-ink/10 space-y-6">
                 <div className="flex justify-between items-end">
                   <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-ink/40">Total</span>
-                  <span className="font-mono text-2xl">{total}$ {currency}</span>
+                  <span className="font-mono text-2xl">{formatPrice(total)}</span>
                 </div>
                 <button className="w-full py-5 bg-brand-ink text-brand-bg text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-brand-accent transition-all">
                   Checkout Now

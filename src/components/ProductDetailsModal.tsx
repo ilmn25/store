@@ -8,7 +8,7 @@ interface ProductDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddToCart: (product: Product) => void;
-  currency: string;
+  formatPrice: (price: number) => string;
 }
 
 export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ 
@@ -16,7 +16,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   isOpen, 
   onClose, 
   onAddToCart,
-  currency 
+  formatPrice 
 }) => {
   if (!product) return null;
 
@@ -63,7 +63,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                       {product.name}
                     </h2>
                   </div>
-                  <p className="text-base md:text-2xl font-mono text-brand-accent">{product.price}$ {currency}</p>
+                  <p className="text-base md:text-2xl font-mono text-brand-accent">{formatPrice(product.price)}</p>
                 </div>
 
                 <div className="space-y-2 md:space-y-4"> 
