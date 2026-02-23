@@ -364,7 +364,7 @@ export default function App() {
                   <div className="flex flex-col md:flex-row md:items-end md:gap-8 space-y-6 md:space-y-0">
                     <div className="flex-shrink-0">
                       <span className="text-brand-ink/40 text-[10px] uppercase font-bold tracking-[0.4em]">Illu's</span>
-                      <h2 className="text-6xl font-black uppercase tracking-tighter leading-none">
+                      <h2 className="text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-tighter leading-none">
                         ILMNNNNNNNN
                       </h2>
                     </div>
@@ -388,7 +388,7 @@ export default function App() {
                       <span className="text-brand-ink/40 text-[10px] uppercase font-bold tracking-[0.4em] mb-4 block">
                         Collection 01 / 2026
                       </span>
-                      <h2 className="text-6xl md:text-9xl font-black leading-[0.8] uppercase tracking-tighter">
+                      <h2 className="text-5xl sm:text-6xl md:text-9xl font-black leading-[0.8] uppercase tracking-tighter">
                         ILMN <br /> NNNNNN<span className="bg-brand-ink text-brand-bg">N</span>
                       </h2>
                     </div>

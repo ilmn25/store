@@ -35,7 +35,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="fixed inset-0 md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-full max-w-5xl h-full md:h-[85vh] bg-brand-bg z-[120] md:rounded-3xl shadow-2xl overflow-y-auto md:overflow-hidden flex flex-col md:flex-row"
+            className="fixed inset-0 md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-full max-w-5xl h-full md:h-[85vh] bg-brand-bg z-[120] md:rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row"
           >
             <button 
               onClick={onClose}
@@ -44,7 +44,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
               <X size={24} />
             </button>
 
-            <div className="w-full md:w-1/2 h-[60vh] md:h-auto bg-brand-ink/5">
+            <div className="w-full md:w-1/2 flex-1 min-h-0 md:h-auto bg-brand-ink/5">
               <img 
                 src={product.url} 
                 alt={product.name} 
@@ -52,37 +52,39 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
               />
             </div>
 
-            <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col overflow-y-auto md:min-h-0">
-              <div className="space-y-8">
-                <div>
-                  <span className="text-brand-ink/40 text-[10px] uppercase font-bold tracking-[0.4em] mb-4 block">
-                    {product.type} / {product.subcategory}
-                  </span>
-                  <h2 className="text-2xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-4">
-                    {product.name}
-                  </h2>
-                  <p className="text-xl md:text-2xl font-mono">{product.price}$ {currency}</p>
+            <div className="w-full md:w-1/2 p-6 md:p-12 flex flex-col flex-shrink-0 h-auto md:flex-1 md:min-h-0">
+              <div className="space-y-4 md:space-y-8">
+                <div className="flex justify-between items-start gap-4">
+                  <div>
+                    <span className="text-brand-ink/40 text-[8px] md:text-[10px] uppercase font-bold tracking-[0.4em] mb-1 md:mb-4 block">
+                      {product.type} / {product.subcategory}
+                    </span>
+                    <h2 className="text-lg md:text-5xl font-black uppercase tracking-tighter leading-none">
+                      {product.name}
+                    </h2>
+                  </div>
+                  <p className="text-base md:text-2xl font-mono whitespace-nowrap">{product.price}$ {currency}</p>
                 </div>
 
-                <div className="space-y-4"> 
+                <div className="space-y-2 md:space-y-4"> 
                   <p 
-                    className="text-brand-ink/60 text-xs md:text-sm uppercase tracking-widest font-medium leading-relaxed"
+                    className="text-brand-ink/60 text-[10px] md:text-sm uppercase tracking-widest font-medium leading-relaxed"
                     dangerouslySetInnerHTML={{ __html: product.description || "No description available for this item." }}
                   />
                 </div>
 
-                <div className="pt-8 space-y-4">
+                <div className="pt-2 md:pt-8 space-y-3 md:space-y-4">
                   <button 
                     onClick={() => {
                       onAddToCart(product);
                       onClose();
                     }}
-                    className="w-full bg-brand-ink text-brand-bg py-4 md:py-6 rounded-full text-[10px] md:text-[12px] uppercase font-black tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-brand-accent transition-all shadow-xl"
+                    className="w-full bg-brand-ink text-brand-bg py-3.5 md:py-6 rounded-full text-[9px] md:text-[12px] uppercase font-black tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-brand-accent transition-all shadow-xl"
                   >
-                    <ShoppingBag size={18} />
+                    <ShoppingBag size={16} className="md:w-[18px] md:h-[18px]" />
                     Add to Bag
                   </button>
-                  <p className="text-center text-[9px] text-brand-ink/30 uppercase tracking-widest font-bold">
+                  <p className="text-center text-[7px] md:text-[9px] text-brand-ink/30 uppercase tracking-widest font-bold">
                     Free shipping on orders over 200$ USD
                   </p>
                 </div>
