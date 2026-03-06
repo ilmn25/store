@@ -6,7 +6,7 @@ import { Product, CartItem } from './types';
 import { ProductCard } from './components/ProductCard';
 import { Cart } from './components/Cart';
 import { ProductDetailsModal } from './components/ProductDetailsModal';
-import { RevealOnScroll } from './components/RevealOnScroll';
+import { RevealOnScroll } from './RevealOnScroll';
 
 export default function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
