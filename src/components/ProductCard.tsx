@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Plus } from 'lucide-react';
 import { Product } from '../types';
 
-import { RevealOnScroll } from './RevealOnScroll';
+import { RevealOnScroll } from '../RevealOnScroll';
 
 interface ProductCardProps {
   product: Product;

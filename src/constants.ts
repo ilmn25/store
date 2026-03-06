@@ -1,5 +1,8 @@
 import { Product } from './types';
 
+export const ASSETS_URL =
+  "https://raw.githubusercontent.com/ilmn25/store/refs/heads/prod/assets/";
+
 export const products: Product[] = [
   {
     id: '1',
@@ -7,7 +10,7 @@ export const products: Product[] = [
     price: 100,
     type: 'Clothes',
     subcategory: 'Hoodies',
-    url: 'https://cdn.discordapp.com/attachments/643815263648612359/1475134305968721983/image.png?ex=699db2e1&is=699c6161&hm=b7fa4145f3976abf70bd4d6d5f922407d0e5669255bda0109fdacfcbb1749710&',
+    url: ASSETS_URL + '0.png',
     description: 'Model | 169cm 45kg Wearing Size M<br><br>S-M 160-170cm 45-55kg<br>M-L 170-175cm 55-65kg<br>L-XL 175-180cm 65-75kg<br>XL-XXL 180-185cm 75-90kg',
     isNew: true
   },
